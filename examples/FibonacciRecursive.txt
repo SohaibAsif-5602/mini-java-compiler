@@ -1,0 +1,12 @@
+final int n = 10;
+func fib(int n) {
+        int result = 0;
+        if n <= 1 {
+                result = n;
+        }
+        else {
+                result = fib(n - 1) + fib(n - 2);
+        }
+	return (result);
+}
+print(fib(n));

@@ -1,0 +1,503 @@
+options {
+    STATIC = false;
+}
+
+PARSER_BEGIN(MiniJava)
+
+import java.util.ArrayList;
+import java.util.Map;
+
+import Symboltable.*;
+import Stackmachine.Stackmachine;
+import Exceptions.*;
+
+
+public class MiniJava {
+    public static void main(String[] args) {
+	MiniJava exp = new MiniJava(System.in);
+        try {
+            mainSymbolTable.isMain = true;
+
+            exp.programm();
+
+            Map<String, SymbolTable> methods = symbolTableGenerator.getSymbolTableList();
+
+            ArrayList<MethodObject> methodObjectsRaw = new ArrayList<>();
+            methodObjectsRaw.add(new MethodObject("main", 1, String.join(" ", mainSymbolTable.byteCode)));
+
+            System.out.println("\n" + "**Byte Code for 'main' Method**");
+            System.out.println(mainSymbolTable.byteCode + "\n");
+
+            for (Map.Entry<String, SymbolTable> entry : methods.entrySet()) {
+                methodObjectsRaw.add(new MethodObject(entry.getKey(), entry.getValue().getArgCount(), String.join(" ", entry.getValue().byteCode)));
+                System.out.println("**Byte Code for '" + entry.getKey() + "' Method**");
+                System.out.println(entry.getValue().byteCode + "\n");
+            }
+
+            MethodObject[] methodObjects = new MethodObject[methodObjectsRaw.size()];
+            methodObjects = methodObjectsRaw.toArray(methodObjects);
+            generator.generateClassFile(methodObjects);
+
+        } catch (Exception e) {
+            System.out.println(e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+    }
+
+    public static SymbolTableGenerator symbolTableGenerator = new SymbolTableGenerator();
+    public static SymbolTable mainSymbolTable = new SymbolTable();
+    public static Stackmachine stackmachine = new Stackmachine();
+    public static JavaClassFileGenerator generator = new JavaClassFileGenerator("MiniJavaClassFile", true, true, true);
+
+    public final static String BIPUSH = "10";
+    public final static String SIPUSH = "11";
+    public final static String ILOAD = "15";
+    public final static String ISTORE = "36";
+    public final static String IADD = "60";
+    public final static String ISUB = "64";
+    public final static String IMUL = "68";
+    public final static String IDIV = "6c";
+    public final static String GOTO = "a7";
+    public final static String IRETURN = "ac";
+    public final static String RET = "b1";
+    public final static String GETSTATIC = "b2";
+    public final static String PUTSTATIC = "b3";
+    public final static String INVOKESTATIC = "b8";
+
+    public final static String IFSTART = "IFSTART";
+    public final static String IFEND = "IFEND";
+    public final static String ELSESTART = "ELSESTART";
+    public final static String ELSEEND = "ELSEEND";
+    public final static String WHILESTART = "WHILESTART";
+    public final static String WHILEEND = "WHILEEND";
+}
+
+PARSER_END(MiniJava)
+
+SKIP:  { " " | "\t" | "\n" | "\r" }
+TOKEN : {
+    <NUMBER : "0" | ["1" - "9"] (["0" - "9"])*>
+    |
+    <MUL : "*">
+    |
+    <DIV : "/">
+    |
+    <ADD : "+">
+    |
+    <SUB : "-">
+    |
+    <COMPOP : "<" | ">" | "<=" | ">=" | "==" | "!=">
+    |
+    <FINAL : "final">
+    |
+    <INT : "int">
+    |
+    <PRINT : "print">
+    |
+    <IF : "if">
+    |
+    <ELSE : "else">
+    |
+    <WHILE : "while">
+    |
+    <VOID : "void">
+    |
+    <FUNC : "func">
+    |
+    <RETURN : "return">
+    |
+    <IDENT : ["a" - "z"] (["a" - "z", "A" - "Z", "0" - "9"])*>
+}
+
+void programm() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+{}
+{
+    constDecl() varDecl() procedure() function() { symbolTableGenerator.setCurrentActiveToInactive(); } statement() <EOF>
+    { mainSymbolTable.byteCode.add(RET); }
+}
+
+void function() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+{ Token t1; }
+{
+    ( <FUNC> t1=<IDENT>
+    {
+        if (symbolTableGenerator.checkIfMethod(t1.image) || mainSymbolTable.checkIfSymbol(t1.image)) {
+            throw new SymbolAlreadyDefinedException("Symbol '" + t1.image + "' is already defined.");
+        }
+
+        symbolTableGenerator.addSymbolTable(t1.image);
+        symbolTableGenerator.setCurrentActiveToInactive();
+        symbolTableGenerator.setSymbolTableActive(t1.image);
+    }
+    "(" routinenParameter(t1) { symbolTableGenerator.getSymbolTable(t1.image).addParameters(); } ")"
+    "{" routinenBlock() <RETURN> expression() ";" "}" { symbolTableGenerator.getSymbolTable(t1.image).byteCode.add(IRETURN);  })*
+}
+
+void procedure() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+{ Token t1; }
+{
+    (<VOID> t1=<IDENT>
+    {
+        if (symbolTableGenerator.checkIfMethod(t1.image) || mainSymbolTable.checkIfSymbol(t1.image)) {
+            throw new SymbolAlreadyDefinedException("Symbol '" + t1.image + "' is already defined.");
+        }
+
+        symbolTableGenerator.addSymbolTable(t1.image);
+        symbolTableGenerator.setCurrentActiveToInactive();
+        symbolTableGenerator.setSymbolTableActive(t1.image);
+    }
+    "(" routinenParameter(t1) { symbolTableGenerator.getSymbolTable(t1.image).addParameters(); } ")"
+    "{" routinenBlock() "}" { symbolTableGenerator.getSymbolTable(t1.image).byteCode.add("b1"); })*
+}
+
+void routinenParameter(Token t1) throws SymbolAlreadyDefinedException, UnknownFunctionException:
+{ Token t2; }
+{
+    (<INT> t2=<IDENT>
+    {
+        symbolTableGenerator.incrementParameterCount(t1.image);
+        symbolTableGenerator.getSymbolTable(t1.image).reserveParameters(t2.image);
+    }
+    routinenParameterList(t1))?
+}
+
+void routinenParameterList(Token t1) throws SymbolAlreadyDefinedException, UnknownFunctionException:
+{ Token t2; }
+{
+    ("," <INT> t2=<IDENT>
+    {
+        symbolTableGenerator.incrementParameterCount(t1.image);
+        symbolTableGenerator.getSymbolTable(t1.image).reserveParameters(t2.image);
+    }
+    )*
+}
+
+void routinenBlock() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, UnknownFunctionException:
+{}
+{
+    ( constDecl() varDecl() statement() )?
+}
+
+void constDecl() throws SymbolAlreadyDefinedException:
+{}
+{
+    (<FINAL> <INT> constZuw() constList() ";")?
+}
+
+void varDecl() throws SymbolAlreadyDefinedException:
+{ Token t1; int value; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    (<INT> t1=<IDENT> value=varZuw()
+    {
+        if (symbolTableGenerator.checkIfMethod(t1.image)) {
+            throw new SymbolAlreadyDefinedException("Symbol '" + t1.image + "' is already defined.");
+        }
+
+        activeSymbolTable.byteCode.add(BIPUSH);
+        activeSymbolTable.byteCode.add(String.format("%1$02X", value));
+
+        if (!activeSymbolTable.isMain) {
+            activeSymbolTable.byteCode.add(ISTORE);
+            activeSymbolTable.byteCode.add(String.format("%1$02X",activeSymbolTable.getCurrentAddress()));
+        }
+        else {
+            activeSymbolTable.byteCode.add(PUTSTATIC + "[" + t1.image + "]");
+        }
+
+        activeSymbolTable.addVariable(t1.image);
+    }
+    varList() ";"
+    )?
+}
+
+void statement() throws UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+{ Token t1; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    t1=<IDENT> ("="
+    {
+        if (!activeSymbolTable.checkIfVariable(t1.image) && activeSymbolTable.isMain ||
+            !mainSymbolTable.checkIfVariable(t1.image) && !activeSymbolTable.checkIfVariable(t1.image) && !activeSymbolTable.isMain) {
+            throw new LValueException("Left Value '" + t1.image + "' does not match variable");
+        }
+    }
+    expression()
+    {
+        if (!activeSymbolTable.isMain && activeSymbolTable.checkIfVariable(t1.image)) {
+            activeSymbolTable.byteCode.add(ISTORE);
+            activeSymbolTable.byteCode.add(String.format("%1$02X", activeSymbolTable.getVariableAddress(t1.image)));
+        }
+        else {
+            activeSymbolTable.byteCode.add(PUTSTATIC + "[" + t1.image + "]");
+        }
+    }
+    | // Either expression or procCall
+    {
+        try {
+            symbolTableGenerator.getSymbolTable(t1.image).callArgCounts.add(symbolTableGenerator.getSymbolTable(t1.image).callArgCount);
+            symbolTableGenerator.getSymbolTable(t1.image).callArgCount = 0;
+        } catch (NullPointerException e) {
+            throw new UnknownFunctionException("Cannot find procedure declaration for '" + t1.image + "'.");
+        }
+    }
+    procCall(t1)
+    {
+        activeSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
+    }
+    ) ";"
+    |
+    <PRINT> "(" expression() ")" ";"
+    {
+        activeSymbolTable.byteCode.add(INVOKESTATIC + "(print)");
+    }
+    |
+    "{" stmtList() "}"
+    |
+    <IF> condition()
+    {
+        activeSymbolTable.byteCode.add(activeSymbolTable.getCurrentLabelNumberIf() + IFSTART);
+        activeSymbolTable.addLabelIf(String.valueOf(activeSymbolTable.getCurrentLabelNumberIf()));
+        activeSymbolTable.incrementCurrentLabelNumberIf();
+    }
+    statement()
+    {
+        activeSymbolTable.byteCode.add(activeSymbolTable.getLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1) + IFEND);
+    }
+    optElse()
+    {
+        activeSymbolTable.byteCode = stackmachine.calculateJumpBytesForIF(activeSymbolTable.byteCode, activeSymbolTable.getLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1));
+        activeSymbolTable.removeLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1);
+    }
+    |
+    <WHILE> condition()
+    {
+        activeSymbolTable.byteCode.add(activeSymbolTable.getCurrentLabelNumberWhile() + WHILESTART);
+        activeSymbolTable.addLabelWhile(String.valueOf(activeSymbolTable.getCurrentLabelNumberWhile()));
+        activeSymbolTable.incrementCurrentLabelNumberWhile();
+    }
+    statement()
+    {
+       activeSymbolTable.byteCode.add(activeSymbolTable.getLabelWhile(activeSymbolTable.getLabelNumbersWhile().size() - 1) + WHILEEND);
+       activeSymbolTable.byteCode.add(GOTO);
+       activeSymbolTable.byteCode = stackmachine.calculateJumpBytesForWHILE(activeSymbolTable.byteCode, activeSymbolTable.getLabelWhile(activeSymbolTable.getLabelNumbersWhile().size() - 1));
+       activeSymbolTable.removeLabelWhile(activeSymbolTable.getLabelNumbersWhile().size() - 1);
+    }
+}
+
+void constZuw() throws SymbolAlreadyDefinedException:
+{ Token t1, t2; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    t1=<IDENT> "=" t2=<NUMBER>
+    {
+        if (symbolTableGenerator.checkIfMethod(t1.image)) {
+            throw new SymbolAlreadyDefinedException("Symbol '" + t1.image + "' is already defined.");
+        }
+
+        activeSymbolTable.addConstant(t1.image, Integer.valueOf(t2.image));
+    }
+}
+
+void constList() throws SymbolAlreadyDefinedException:
+{}
+{
+    ("," constZuw() constList())?
+}
+
+int varZuw():
+{ Token t1; }
+{
+    "=" t1=<NUMBER> { return Integer.parseInt(t1.image); }
+    |
+    { return 0; }
+}
+
+void varList() throws SymbolAlreadyDefinedException:
+{ Token t1; int value; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    ("," t1=<IDENT> value=varZuw()
+    {
+        activeSymbolTable.byteCode.add(BIPUSH);
+        activeSymbolTable.byteCode.add(String.format("%1$02X", value));
+
+        if (!activeSymbolTable.isMain) {
+            activeSymbolTable.byteCode.add(ISTORE);
+            activeSymbolTable.byteCode.add(String.format("%1$02X",activeSymbolTable.getCurrentAddress()));
+        }
+        else {
+            activeSymbolTable.byteCode.add(PUTSTATIC + "[" + t1.image + "]");
+        }
+
+        activeSymbolTable.addVariable(t1.image);
+    }
+    varList())?
+}
+
+void expression() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{}
+{
+    term() summe()
+}
+
+void term() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{}
+{
+    faktor() produkt()
+}
+
+void summe() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{ SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    (<ADD> term()
+    {
+        activeSymbolTable.byteCode.add(IADD);
+    }
+    summe()
+    |
+    <SUB> term()
+    {
+        activeSymbolTable.byteCode.add(ISUB);
+    }
+    summe())?
+}
+
+void faktor() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{ Token t1; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    t1=<NUMBER>
+    {
+        activeSymbolTable.byteCode.add(BIPUSH);
+        activeSymbolTable.byteCode.add(String.format("%1$02X",Integer.valueOf(t1.image)));
+    }
+    |
+    t1=<IDENT>
+    (
+    {
+        try {
+            symbolTableGenerator.getSymbolTable(t1.image).callArgCounts.add(symbolTableGenerator.getSymbolTable(t1.image).callArgCount);
+            symbolTableGenerator.getSymbolTable(t1.image).callArgCount = 0;
+        } catch (NullPointerException e) {
+            throw new UnknownFunctionException("Cannot find function declaration for '" + t1.image + "'.");
+        }
+    }
+    functionCall(t1)
+    )?
+    {
+        if (!activeSymbolTable.isMain) {
+            if (activeSymbolTable.checkIfVariable(t1.image)) {
+                activeSymbolTable.byteCode.add(ILOAD);
+                activeSymbolTable.byteCode.add(String.format("%1$02X", activeSymbolTable.getSymbol(t1.image)));
+            }
+            else if (activeSymbolTable.checkIfConstant(t1.image)) {
+                activeSymbolTable.byteCode.add(BIPUSH);
+                activeSymbolTable.byteCode.add(String.format("%1$02X", mainSymbolTable.getSymbol(t1.image)));
+            }
+            else if (mainSymbolTable.checkIfVariable(t1.image)) {
+                activeSymbolTable.byteCode.add(GETSTATIC + "[" + t1.image + "]");
+            }
+            else if (mainSymbolTable.checkIfConstant(t1.image)) {
+                mainSymbolTable.byteCode.add(BIPUSH);
+                mainSymbolTable.byteCode.add(String.format("%1$02X", mainSymbolTable.getSymbol(t1.image)));
+            }
+            else if (symbolTableGenerator.checkIfMethod(t1.image)) {
+                activeSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
+            }
+            else {
+                throw new RValueException("Right Value' " + t1.image + "' does not match Variable, Constant or Function.");
+            }
+        }
+        else if (mainSymbolTable.checkIfVariable(t1.image)) {
+            mainSymbolTable.byteCode.add(GETSTATIC + "[" + t1.image + "]");
+        }
+        else if (mainSymbolTable.checkIfConstant(t1.image)) {
+            mainSymbolTable.byteCode.add(BIPUSH);
+            mainSymbolTable.byteCode.add(String.format("%1$02X", mainSymbolTable.getSymbol(t1.image)));
+        }
+        else if (symbolTableGenerator.checkIfMethod(t1.image)) {
+            mainSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
+        }
+        else {
+            throw new RValueException("Right Value' " + t1.image + "' does not match Variable, Constant or Function.");
+        }
+    }
+    |
+    "(" expression() ")"
+}
+
+void produkt() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{ SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    (<MUL> faktor()
+    {
+        activeSymbolTable.byteCode.add(IMUL);
+    }
+    produkt()
+    |
+    <DIV> faktor()
+    {
+        activeSymbolTable.byteCode.add(IDIV);
+    }
+    produkt()
+    )?
+}
+
+void condition() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{ Token t1; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    expression() t1=<COMPOP> expression()
+    {
+        activeSymbolTable.byteCode.add(stackmachine.getCompOPByteCode(t1.image));
+    }
+}
+
+void stmtList() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{}
+{
+    (statement() stmtList())?
+}
+
+void optElse() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{ SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
+{
+    (<ELSE>
+    {
+        activeSymbolTable.byteCode.add(activeSymbolTable.getLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1) + ELSESTART);
+        activeSymbolTable.byteCode.add(GOTO);
+    }
+    statement()
+    {
+        activeSymbolTable.byteCode.add(activeSymbolTable.getLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1) + ELSEEND);
+    }
+    )?
+}
+
+void functionCall(Token t1) throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{ SymbolTable activeSymbolTable = symbolTableGenerator.getSymbolTable(t1.image); }
+{
+    "(" (expression() { activeSymbolTable.callArgCount++; } ("," expression() { activeSymbolTable.callArgCount++; } )* )? ")"
+    {
+        activeSymbolTable.callArgCount += activeSymbolTable.callArgCounts.get(0);
+        activeSymbolTable.callArgCounts.remove(0);
+
+        if (activeSymbolTable.callArgCount != activeSymbolTable.getArgCount()) {
+            throw new WrongParametersException("Wrong Parameter count. Expected: " + activeSymbolTable.getArgCount() + ", Actucal: " + activeSymbolTable.callArgCount);
+        }
+        activeSymbolTable.callArgCount = 0;
+    }
+}
+
+void procCall(Token t1) throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{ SymbolTable activeSymbolTable = symbolTableGenerator.getSymbolTable(t1.image); }
+{
+    "(" (expression() { activeSymbolTable.callArgCount++; } ("," expression() { activeSymbolTable.callArgCount++; } )* )? ")"
+    {
+        activeSymbolTable.callArgCount += activeSymbolTable.callArgCounts.get(0);
+        activeSymbolTable.callArgCounts.remove(0);
+
+        if (activeSymbolTable.callArgCount != activeSymbolTable.getArgCount()) {
+            throw new WrongParametersException("Wrong Parameter count. Expected: " + activeSymbolTable.getArgCount() + ", Actucal: " + activeSymbolTable.callArgCount);
+        }
+        activeSymbolTable.callArgCount = 0;
+    }
+}
+
+
+
+

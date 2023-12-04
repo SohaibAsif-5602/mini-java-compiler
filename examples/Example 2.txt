@@ -1,0 +1,32 @@
+final int a = 3, b = 6;
+int c = 2, d = 6, i = 0;
+void myPrint(int i) {
+        print(i);
+}
+
+func f1(int a, int b) {
+        int c = 2;
+        if a < b {
+                c = a + 1;
+                d = 5 + 5;
+                while c < 15 {
+                        c = c + 1;
+                }
+        }
+        else {
+                d = 33;
+        }
+        return (c + d);
+}
+{
+	while i < 10 {
+		i = i + 1;
+		if i == 5 {
+			i = i + 10;
+		}
+		else {
+			print(i);
+		}
+	}
+	myPrint(f1(1, 5));
+}

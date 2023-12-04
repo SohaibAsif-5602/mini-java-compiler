@@ -1,0 +1,28 @@
+int n = 10;
+
+void customPrint(int n) {
+	int i = 0;
+	while i < 10 {
+		i = i + 1;
+		print(n);
+	}
+}
+
+func c(int n) {
+    {}
+    return (n * 3);
+}
+
+func a() {
+    int m = 30;
+    n = m - n;
+    return(c(n));
+}
+
+func b(int n1, int n2) {
+    int n3 = 3;
+    n3 = n1 + n2;
+    return(n3 + a());
+}
+
+customPrint(b(n+2, 3));
