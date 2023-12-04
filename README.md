@@ -30,7 +30,7 @@ $ javacc MiniJava.jj
 ```
 $ javac MiniJava.java
 ```
-5. Create the class files with the following command:
+5. Run with the following command:
 ```
 $ java MiniJava
 ```
