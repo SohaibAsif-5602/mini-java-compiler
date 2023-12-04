@@ -7,7 +7,7 @@ This is a simple compiler for MiniJava, a minimalistic Java-like programming lan
 
 ### Using the included JAR
 1. Ensure you have Java installed on your system.
-2. Open a terminal and navigate to the `compiler` directory containing the `MiniJava.jar` file.
+2. Open a terminal and navigate to the `compiler` directory containing the `MiniJava.jar` file (or get the release: https://github.com/BlackyDrum/mini-java-compiler/releases/tag/v1.0.0).
 3. Run the following command to compile a MiniJava source file:
 ```
 $ java -jar MiniJava.jar
