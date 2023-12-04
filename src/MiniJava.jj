@@ -26,12 +26,12 @@ public class MiniJava {
             methodObjectsRaw.add(new MethodObject("main", 1, String.join(" ", mainSymbolTable.byteCode)));
 
             System.out.println("\n" + "**Byte Code for 'main' Method**");
-            System.out.println(mainSymbolTable.byteCode + "\n");
+            System.out.println(String.join(" ", mainSymbolTable.byteCode).toLowerCase() + "\n");
 
             for (Map.Entry<String, SymbolTable> entry : methods.entrySet()) {
                 methodObjectsRaw.add(new MethodObject(entry.getKey(), entry.getValue().getArgCount(), String.join(" ", entry.getValue().byteCode)));
                 System.out.println("**Byte Code for '" + entry.getKey() + "' Method**");
-                System.out.println(entry.getValue().byteCode + "\n");
+                System.out.println(String.join(" ", entry.getValue().byteCode).toLowerCase() + "\n");
             }
 
             MethodObject[] methodObjects = new MethodObject[methodObjectsRaw.size()];
@@ -46,7 +46,7 @@ public class MiniJava {
     public static SymbolTableGenerator symbolTableGenerator = new SymbolTableGenerator();
     public static SymbolTable mainSymbolTable = new SymbolTable();
     public static Stackmachine stackmachine = new Stackmachine();
-    public static JavaClassFileGenerator generator = new JavaClassFileGenerator("MiniJavaClassFile", true, true, true);
+    public static JavaClassFileGenerator generator = new JavaClassFileGenerator("MiniJavaClassFile", true, false, false);
 
     public final static String BIPUSH = "10";
     public final static String SIPUSH = "11";
