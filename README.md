@@ -12,7 +12,8 @@ This is a simple compiler for MiniJava, a minimalistic Java-like programming lan
 ```
 $ java -jar MiniJava.jar
 ```
-The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
+4. Enter your code (have a look at examples: https://github.com/BlackyDrum/mini-java-compiler/tree/main/examples)
+5. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
 ```
 $ java MiniJavaClassFile
 ```
