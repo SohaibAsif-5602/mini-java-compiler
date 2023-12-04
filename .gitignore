@@ -1,0 +1,9 @@
+*.class
+*.java
+
+!/src/Exceptions/
+!/src/Stackmachine/
+!/src/Symboltable/
+
+!/src/JavaClassFileGenerator.java
+!/src/MethodObject.java
