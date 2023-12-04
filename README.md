@@ -12,8 +12,9 @@ This is a simple compiler for MiniJava, a minimalistic Java-like programming lan
 ```
 $ java -jar MiniJava.jar
 ```
-4. Enter your code (have a look at examples: https://github.com/BlackyDrum/mini-java-compiler/tree/main/examples)
-5. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
+4. Enter your code (have a look at the `examples` directory).
+5. In a seperate line, enter the end-of-file character `CTRL+Z`.
+6. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
 ```
 $ java MiniJavaClassFile
 ```
@@ -33,7 +34,9 @@ $ javac MiniJava.java
 ```
 $ java MiniJava
 ```
-6. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
+6. Enter your code (have a look at the `examples` directory).
+7. In a seperate line, enter the end-of-file character `CTRL+Z`.
+8. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
 ```
 $ java MiniJavaClassFile
 ```
