@@ -10,11 +10,9 @@ This is a simple compiler for MiniJava, a minimalistic Java-like programming lan
 2. Open a terminal and navigate to the `compiler` directory containing the `MiniJava.jar` file (or get the release: https://github.com/BlackyDrum/mini-java-compiler/releases/tag/v1.0.0).
 3. Run the following command to compile a MiniJava source file:
 ```
-$ java -jar MiniJava.jar
+$ java -jar MiniJava.jar < mySourceFile.txt
 ```
-4. Enter your code (have a look at the `examples` directory).
-5. In a seperate line, enter the end-of-file character `CTRL+Z`.
-6. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
+5. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
 ```
 $ java MiniJavaClassFile
 ```
@@ -30,13 +28,11 @@ $ javacc MiniJava.jj
 ```
 $ javac MiniJava.java
 ```
-5. Run with the following command:
+5. Run the following command to compile a MiniJava source file:
 ```
-$ java MiniJava
+$ java MiniJava < mySourceFile.txt
 ```
-6. Enter your code (have a look at the `examples` directory).
-7. In a seperate line, enter the end-of-file character `CTRL+Z`.
-8. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
+6. The compiler will generate a Java class file named `MiniJavaClassFile.class`. Run the compiled class file with the following command:
 ```
 $ java MiniJavaClassFile
 ```
