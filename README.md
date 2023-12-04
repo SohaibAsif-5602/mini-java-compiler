@@ -93,6 +93,7 @@ func f1(int a, int b) {
 
 ## LL(1) Grammar Analyzer
 I have also built a calculator for generating `first`, `follow`, and `lookahead` sets to check if a grammar is `LL(1)`. You can find the calculator [here](https://blackydrum.github.io/first-follow-ll1-calculator/).
-Feel free to explore and use it in conjunction with the `MiniJava` compiler. The `MiniJava` language grammar used by the compiler is also available in this repository.
+Feel free to explore and use it in conjunction with the `MiniJava` compiler. The `MiniJava` language grammar used by the compiler is also available in this repository. <br> <br>
+**Please note that the provided grammar is not `LL(1)` due to the presence of the 'else' keyword in the `<optElse>` production, which introduces ambiguity. This is because after seeing an `if` statement, the parser cannot determine whether to expand `<optElse>` to `else` `<statement>` or to `epsilon`.**
 
 
