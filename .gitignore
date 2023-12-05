@@ -1,6 +1,9 @@
 *.class
 *.java
 
+*.xml
+*.iml
+
 !/src/Exceptions/
 !/src/Stackmachine/
 !/src/Symboltable/
