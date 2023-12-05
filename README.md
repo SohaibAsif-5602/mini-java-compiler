@@ -56,6 +56,45 @@ print(fib(n));
 
 **Example 2:**
 ```java
+final int number = 12345;
+
+func getRightmostDigit(int number) {
+	int n;
+	{
+		n = number;
+		
+		while n >= 10 {
+			n = n - 10;
+		}
+	}
+
+	return (n);
+}
+
+func removeRightmostDigit(int number) {
+	{}
+	return (number / 10);
+}
+
+func reverse(int number) {
+	int reversedNumber = 0, remainingNumber, digit;
+	{
+		remainingNumber = number;
+
+		while remainingNumber != 0 {
+			digit = getRightmostDigit(remainingNumber);
+			reversedNumber = reversedNumber * 10 + digit;
+			remainingNumber = removeRightmostDigit(remainingNumber);
+		}
+	}
+	return (reversedNumber);
+}
+
+print(reverse(number));
+```
+
+**Example 3:**
+```java
 final int a = 3, b = 6;
 int c = 2, d = 6, i = 0;
 void myPrint(int i) {
@@ -88,7 +127,6 @@ func f1(int a, int b) {
 	}
 	myPrint(f1(1, 5));
 }
-
 ```
 
 ## LL(1) Grammar Analyzer
