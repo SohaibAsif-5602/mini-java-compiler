@@ -6,6 +6,8 @@
 
 .idea
 
+MiniJavaClassFileV.txt
+
 !/src/Exceptions/
 !/src/ByteCodeGenerator/*.java
 !/src/Symboltable/
