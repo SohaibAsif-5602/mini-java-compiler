@@ -1,0 +1,36 @@
+final int number = 12345;
+
+func getRightmostDigit(int number) {
+	int n;
+	{
+		n = number;
+		
+		while n >= 10 {
+			n = n - 10;
+		}
+	}
+
+	return (n);
+}
+
+func removeRightmostDigit(int number) {
+	{}
+	return (number / 10);
+}
+
+func reverse(int number) {
+	int reversedNumber = 0, remainingNumber, digit;
+	{
+		remainingNumber = number;
+
+		while remainingNumber != 0 {
+			digit = getRightmostDigit(remainingNumber);
+			reversedNumber = reversedNumber * 10 + digit;
+			remainingNumber = removeRightmostDigit(remainingNumber);
+		}
+	}
+	return (reversedNumber);
+}
+
+print(reverse(number));
+
