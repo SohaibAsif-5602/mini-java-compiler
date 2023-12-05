@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import Symboltable.*;
-import Stackmachine.Stackmachine;
+import ByteCodeGenerator.*;
 import Exceptions.*;
 
 
@@ -45,7 +45,7 @@ public class MiniJava {
 
     public static SymbolTableGenerator symbolTableGenerator = new SymbolTableGenerator();
     public static SymbolTable mainSymbolTable = new SymbolTable();
-    public static Stackmachine stackmachine = new Stackmachine();
+    public static JumpSizeCalculator jumpSizeCalculator = new JumpSizeCalculator();
     public static JavaClassFileGenerator generator = new JavaClassFileGenerator("MiniJavaClassFile", true, false, false);
 
     public final static String BIPUSH = "10";
@@ -263,7 +263,7 @@ void statement() throws UnknownSymbolException, LValueException, RValueException
     }
     optElse()
     {
-        activeSymbolTable.byteCode = stackmachine.calculateJumpBytesForIF(activeSymbolTable.byteCode, activeSymbolTable.getLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1));
+        activeSymbolTable.byteCode = jumpSizeCalculator.calculateJumpBytesForIF(activeSymbolTable.byteCode, activeSymbolTable.getLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1));
         activeSymbolTable.removeLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1);
     }
     |
@@ -277,7 +277,7 @@ void statement() throws UnknownSymbolException, LValueException, RValueException
     {
        activeSymbolTable.byteCode.add(activeSymbolTable.getLabelWhile(activeSymbolTable.getLabelNumbersWhile().size() - 1) + WHILEEND);
        activeSymbolTable.byteCode.add(GOTO);
-       activeSymbolTable.byteCode = stackmachine.calculateJumpBytesForWHILE(activeSymbolTable.byteCode, activeSymbolTable.getLabelWhile(activeSymbolTable.getLabelNumbersWhile().size() - 1));
+       activeSymbolTable.byteCode = jumpSizeCalculator.calculateJumpBytesForWHILE(activeSymbolTable.byteCode, activeSymbolTable.getLabelWhile(activeSymbolTable.getLabelNumbersWhile().size() - 1));
        activeSymbolTable.removeLabelWhile(activeSymbolTable.getLabelNumbersWhile().size() - 1);
     }
 }
@@ -443,7 +443,7 @@ void condition() throws UnknownSymbolException, RValueException, WrongParameters
 {
     expression() t1=<COMPOP> expression()
     {
-        activeSymbolTable.byteCode.add(stackmachine.getCompOPByteCode(t1.image));
+        activeSymbolTable.byteCode.add(jumpSizeCalculator.getCompOPByteCode(t1.image));
     }
 }
 

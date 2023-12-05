@@ -7,7 +7,7 @@
 .idea
 
 !/src/Exceptions/
-!/src/Stackmachine/
+!/src/ByteCodeGenerator/*.java
 !/src/Symboltable/
 
 !/src/JavaClassFileGenerator.java
