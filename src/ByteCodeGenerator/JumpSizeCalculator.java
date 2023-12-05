@@ -123,10 +123,13 @@ public class JumpSizeCalculator {
         if (first.get(first.size() - 4).contains("[")) {
             staticBytes++;
         }
-        if (first.get(first.size() - 5).contains("[")) {
+        if (first.get(first.size() - 5).contains("[") || first.get(first.size() - 5).equals("11")) {
             staticBytes++;
         }
-        else if (first.get(first.size() - 6).contains("[")) {
+        if (first.get(first.size() - 6).contains("[") || first.get(first.size() - 6).equals("11")) {
+            staticBytes++;
+        }
+        if (first.get(first.size() - 7).equals("11")) {
             staticBytes++;
         }
 

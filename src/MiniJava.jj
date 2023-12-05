@@ -46,7 +46,7 @@ public class MiniJava {
     public static SymbolTableGenerator symbolTableGenerator = new SymbolTableGenerator();
     public static SymbolTable mainSymbolTable = new SymbolTable();
     public static JumpSizeCalculator jumpSizeCalculator = new JumpSizeCalculator();
-    public static JavaClassFileGenerator generator = new JavaClassFileGenerator("MiniJavaClassFile", true, false, false);
+    public static JavaClassFileGenerator generator = new JavaClassFileGenerator("MiniJavaClassFile", true, false, true);
 
     public final static String BIPUSH = "10";
     public final static String SIPUSH = "11";
@@ -192,8 +192,8 @@ void varDecl() throws SymbolAlreadyDefinedException:
             throw new SymbolAlreadyDefinedException("Symbol '" + t1.image + "' is already defined.");
         }
 
-        activeSymbolTable.byteCode.add(BIPUSH);
-        activeSymbolTable.byteCode.add(String.format("%1$02X", value));
+        activeSymbolTable.byteCode.add(SIPUSH);
+        activeSymbolTable.byteCode.add(String.format("%1$04X", value));
 
         if (!activeSymbolTable.isMain) {
             activeSymbolTable.byteCode.add(ISTORE);
@@ -314,8 +314,8 @@ void varList() throws SymbolAlreadyDefinedException:
 {
     ("," t1=<IDENT> value=varZuw()
     {
-        activeSymbolTable.byteCode.add(BIPUSH);
-        activeSymbolTable.byteCode.add(String.format("%1$02X", value));
+        activeSymbolTable.byteCode.add(SIPUSH);
+        activeSymbolTable.byteCode.add(String.format("%1$04X", value));
 
         if (!activeSymbolTable.isMain) {
             activeSymbolTable.byteCode.add(ISTORE);
@@ -363,8 +363,8 @@ void faktor() throws UnknownSymbolException, RValueException, WrongParametersExc
 {
     t1=<NUMBER>
     {
-        activeSymbolTable.byteCode.add(BIPUSH);
-        activeSymbolTable.byteCode.add(String.format("%1$02X",Integer.valueOf(t1.image)));
+        activeSymbolTable.byteCode.add(SIPUSH);
+        activeSymbolTable.byteCode.add(String.format("%1$04X",Integer.valueOf(t1.image)));
     }
     |
     t1=<IDENT>
@@ -386,15 +386,15 @@ void faktor() throws UnknownSymbolException, RValueException, WrongParametersExc
                 activeSymbolTable.byteCode.add(String.format("%1$02X", activeSymbolTable.getSymbol(t1.image)));
             }
             else if (activeSymbolTable.checkIfConstant(t1.image)) {
-                activeSymbolTable.byteCode.add(BIPUSH);
-                activeSymbolTable.byteCode.add(String.format("%1$02X", mainSymbolTable.getSymbol(t1.image)));
+                activeSymbolTable.byteCode.add(SIPUSH);
+                activeSymbolTable.byteCode.add(String.format("%1$04X", activeSymbolTable.getSymbol(t1.image)));
             }
             else if (mainSymbolTable.checkIfVariable(t1.image)) {
                 activeSymbolTable.byteCode.add(GETSTATIC + "[" + t1.image + "]");
             }
             else if (mainSymbolTable.checkIfConstant(t1.image)) {
-                mainSymbolTable.byteCode.add(BIPUSH);
-                mainSymbolTable.byteCode.add(String.format("%1$02X", mainSymbolTable.getSymbol(t1.image)));
+                activeSymbolTable.byteCode.add(SIPUSH);
+                activeSymbolTable.byteCode.add(String.format("%1$04X", mainSymbolTable.getSymbol(t1.image)));
             }
             else if (symbolTableGenerator.checkIfMethod(t1.image)) {
                 activeSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
@@ -407,8 +407,8 @@ void faktor() throws UnknownSymbolException, RValueException, WrongParametersExc
             mainSymbolTable.byteCode.add(GETSTATIC + "[" + t1.image + "]");
         }
         else if (mainSymbolTable.checkIfConstant(t1.image)) {
-            mainSymbolTable.byteCode.add(BIPUSH);
-            mainSymbolTable.byteCode.add(String.format("%1$02X", mainSymbolTable.getSymbol(t1.image)));
+            mainSymbolTable.byteCode.add(SIPUSH);
+            mainSymbolTable.byteCode.add(String.format("%1$04X", mainSymbolTable.getSymbol(t1.image)));
         }
         else if (symbolTableGenerator.checkIfMethod(t1.image)) {
             mainSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
