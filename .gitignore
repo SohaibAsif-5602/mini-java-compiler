@@ -4,6 +4,8 @@
 *.xml
 *.iml
 
+.idea
+
 !/src/Exceptions/
 !/src/Stackmachine/
 !/src/Symboltable/
