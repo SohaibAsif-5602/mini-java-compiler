@@ -76,39 +76,31 @@ public class MiniJava {
 
 PARSER_END(MiniJava)
 
-SKIP:  { " " | "\t" | "\n" | "\r" }
+SKIP:  {
+   " "
+ | "\t"
+ | "\n"
+ | "\r"
+ | <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n" | "\r" | "\r\n") >
+ | <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" (~["*","/"] (~["*"])* "*" | "*")* "/" >
+ }
 TOKEN : {
-    <NUMBER : "0" | ["1" - "9"] (["0" - "9"])*>
-    |
-    <MUL : "*">
-    |
-    <DIV : "/">
-    |
-    <ADD : "+">
-    |
-    <SUB : "-">
-    |
-    <COMPOP : "<" | ">" | "<=" | ">=" | "==" | "!=">
-    |
-    <FINAL : "final">
-    |
-    <INT : "int">
-    |
-    <PRINT : "print">
-    |
-    <IF : "if">
-    |
-    <ELSE : "else">
-    |
-    <WHILE : "while">
-    |
-    <VOID : "void">
-    |
-    <FUNC : "func">
-    |
-    <RETURN : "return">
-    |
-    <IDENT : ["a" - "z"] (["a" - "z", "A" - "Z", "0" - "9"])*>
+      <NUMBER : "0" | ["1" - "9"] (["0" - "9"])*>
+    | <MUL : "*">
+    | <DIV : "/">
+    | <ADD : "+">
+    | <SUB : "-">
+    | <COMPOP : "<" | ">" | "<=" | ">=" | "==" | "!=">
+    | <FINAL : "final">
+    | <INT : "int">
+    | <PRINT : "print">
+    | <IF : "if">
+    | <ELSE : "else">
+    | <WHILE : "while">
+    | <VOID : "void">
+    | <FUNC : "func">
+    | <RETURN : "return">
+    | <IDENT : ["a" - "z"] (["a" - "z", "A" - "Z", "0" - "9"])*>
 }
 
 void programm() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
@@ -149,7 +141,7 @@ void procedure() throws SymbolAlreadyDefinedException, UnknownSymbolException, L
         symbolTableGenerator.setSymbolTableActive(t1.image);
     }
     "(" routinenParameter(t1) { symbolTableGenerator.getSymbolTable(t1.image).addParameters(); } ")"
-    "{" routinenBlock() "}" { symbolTableGenerator.getSymbolTable(t1.image).byteCode.add("b1"); })*
+    "{" routinenBlock() "}" { symbolTableGenerator.getSymbolTable(t1.image).byteCode.add(RET); })*
 }
 
 void routinenParameter(Token t1) throws SymbolAlreadyDefinedException, UnknownFunctionException:
