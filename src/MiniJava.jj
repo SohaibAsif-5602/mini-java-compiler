@@ -63,6 +63,9 @@ public class MiniJava {
     public final static String PUTSTATIC = "b3";
     public final static String INVOKESTATIC = "b8";
 
+    public final static String HEXFORMAT4 = "%1$04X";
+    public final static String HEXFORMAT2 = "%1$02X";
+
     public final static String IFSTART = "IFSTART";
     public final static String IFEND = "IFEND";
     public final static String ELSESTART = "ELSESTART";
@@ -193,11 +196,11 @@ void varDecl() throws SymbolAlreadyDefinedException:
         }
 
         activeSymbolTable.byteCode.add(SIPUSH);
-        activeSymbolTable.byteCode.add(String.format("%1$04X", value));
+        activeSymbolTable.byteCode.add(String.format(HEXFORMAT4, value));
 
         if (!activeSymbolTable.isMain) {
             activeSymbolTable.byteCode.add(ISTORE);
-            activeSymbolTable.byteCode.add(String.format("%1$02X",activeSymbolTable.getCurrentAddress()));
+            activeSymbolTable.byteCode.add(String.format(HEXFORMAT2, activeSymbolTable.getCurrentAddress()));
         }
         else {
             activeSymbolTable.byteCode.add(PUTSTATIC + "[" + t1.image + "]");
@@ -223,7 +226,7 @@ void statement() throws UnknownSymbolException, LValueException, RValueException
     {
         if (!activeSymbolTable.isMain && activeSymbolTable.checkIfVariable(t1.image)) {
             activeSymbolTable.byteCode.add(ISTORE);
-            activeSymbolTable.byteCode.add(String.format("%1$02X", activeSymbolTable.getVariableAddress(t1.image)));
+            activeSymbolTable.byteCode.add(String.format(HEXFORMAT2, activeSymbolTable.getVariableAddress(t1.image)));
         }
         else {
             activeSymbolTable.byteCode.add(PUTSTATIC + "[" + t1.image + "]");
@@ -315,11 +318,11 @@ void varList() throws SymbolAlreadyDefinedException:
     ("," t1=<IDENT> value=varZuw()
     {
         activeSymbolTable.byteCode.add(SIPUSH);
-        activeSymbolTable.byteCode.add(String.format("%1$04X", value));
+        activeSymbolTable.byteCode.add(String.format(HEXFORMAT4, value));
 
         if (!activeSymbolTable.isMain) {
             activeSymbolTable.byteCode.add(ISTORE);
-            activeSymbolTable.byteCode.add(String.format("%1$02X",activeSymbolTable.getCurrentAddress()));
+            activeSymbolTable.byteCode.add(String.format(HEXFORMAT2, activeSymbolTable.getCurrentAddress()));
         }
         else {
             activeSymbolTable.byteCode.add(PUTSTATIC + "[" + t1.image + "]");
@@ -364,7 +367,7 @@ void faktor() throws UnknownSymbolException, RValueException, WrongParametersExc
     t1=<NUMBER>
     {
         activeSymbolTable.byteCode.add(SIPUSH);
-        activeSymbolTable.byteCode.add(String.format("%1$04X",Integer.valueOf(t1.image)));
+        activeSymbolTable.byteCode.add(String.format(HEXFORMAT4, Integer.valueOf(t1.image)));
     }
     |
     t1=<IDENT>
@@ -383,18 +386,18 @@ void faktor() throws UnknownSymbolException, RValueException, WrongParametersExc
         if (!activeSymbolTable.isMain) {
             if (activeSymbolTable.checkIfVariable(t1.image)) {
                 activeSymbolTable.byteCode.add(ILOAD);
-                activeSymbolTable.byteCode.add(String.format("%1$02X", activeSymbolTable.getSymbol(t1.image)));
+                activeSymbolTable.byteCode.add(String.format(HEXFORMAT2, activeSymbolTable.getSymbol(t1.image)));
             }
             else if (activeSymbolTable.checkIfConstant(t1.image)) {
                 activeSymbolTable.byteCode.add(SIPUSH);
-                activeSymbolTable.byteCode.add(String.format("%1$04X", activeSymbolTable.getSymbol(t1.image)));
+                activeSymbolTable.byteCode.add(String.format(HEXFORMAT4, activeSymbolTable.getSymbol(t1.image)));
             }
             else if (mainSymbolTable.checkIfVariable(t1.image)) {
                 activeSymbolTable.byteCode.add(GETSTATIC + "[" + t1.image + "]");
             }
             else if (mainSymbolTable.checkIfConstant(t1.image)) {
                 activeSymbolTable.byteCode.add(SIPUSH);
-                activeSymbolTable.byteCode.add(String.format("%1$04X", mainSymbolTable.getSymbol(t1.image)));
+                activeSymbolTable.byteCode.add(String.format(HEXFORMAT4, mainSymbolTable.getSymbol(t1.image)));
             }
             else if (symbolTableGenerator.checkIfMethod(t1.image)) {
                 activeSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
@@ -408,7 +411,7 @@ void faktor() throws UnknownSymbolException, RValueException, WrongParametersExc
         }
         else if (mainSymbolTable.checkIfConstant(t1.image)) {
             mainSymbolTable.byteCode.add(SIPUSH);
-            mainSymbolTable.byteCode.add(String.format("%1$04X", mainSymbolTable.getSymbol(t1.image)));
+            mainSymbolTable.byteCode.add(String.format(HEXFORMAT4, mainSymbolTable.getSymbol(t1.image)));
         }
         else if (symbolTableGenerator.checkIfMethod(t1.image)) {
             mainSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
