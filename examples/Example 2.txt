@@ -18,7 +18,8 @@ func f1(int a, int b) {
         }
         return (c + d);
 }
-{
+
+static void main() {
 	while i < 10 {
 		i = i + 1;
 		if i == 5 {

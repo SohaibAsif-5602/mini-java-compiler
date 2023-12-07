@@ -9,4 +9,7 @@ func fib (int n) {
         }
 	return (b);
 }
-print(fib(n));
+
+static void main() {
+	print(fib(n));
+}

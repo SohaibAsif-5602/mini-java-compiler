@@ -51,7 +51,10 @@ func fib(int n) {
         }
 	return (result);
 }
-print(fib(n));
+
+static void main() {
+    print(fib(n));
+}
 ```
 
 **Example 2:**
@@ -90,7 +93,9 @@ func reverse(int number) {
 	return (reversedNumber);
 }
 
-print(reverse(number));
+static void main() {
+    print(reverse(number));
+}
 ```
 
 **Example 3:**
@@ -115,7 +120,8 @@ func f1(int a, int b) {
         }
         return (c + d);
 }
-{
+
+static void main() {
 	while i < 10 {
 		i = i + 1;
 		if i == 5 {

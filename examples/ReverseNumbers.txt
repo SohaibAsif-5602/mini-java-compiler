@@ -32,5 +32,6 @@ func reverse(int number) {
 	return (reversedNumber);
 }
 
-print(reverse(number));
-
+static void main() {
+	print(reverse(number));
+}

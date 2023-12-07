@@ -17,4 +17,8 @@ func ack(int a, int b) {
         	}
         return ret;
 }
-print(ack(a,b));
+
+static void main() {
+	print(ack(a,b));
+}
+

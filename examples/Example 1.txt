@@ -25,4 +25,6 @@ func b(int n1, int n2) {
     return(n3 + a());
 }
 
-customPrint(b(n+2, 3));
+static void main() {
+	customPrint(b(n+2, 3));
+}

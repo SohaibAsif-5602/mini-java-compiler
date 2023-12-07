@@ -11,4 +11,6 @@ func power(int x, int n) {
 	return (result);
 }
 
-print(power(base, exponent));
+static void main() {
+	print(power(base, exponent));
+}

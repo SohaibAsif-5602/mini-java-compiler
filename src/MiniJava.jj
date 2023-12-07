@@ -97,7 +97,9 @@ TOKEN : {
     | <IF : "if">
     | <ELSE : "else">
     | <WHILE : "while">
+    | <MAIN : "main">
     | <VOID : "void">
+    | <STATIC : "static">
     | <FUNC : "func">
     | <RETURN : "return">
     | <IDENT : ["a" - "z"] (["a" - "z", "A" - "Z", "0" - "9"])*>
@@ -106,8 +108,14 @@ TOKEN : {
 void programm() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
 {}
 {
-    constDecl() varDecl() procedure() function() { symbolTableGenerator.setCurrentActiveToInactive(); } statement() <EOF>
+    constDecl() varDecl() procedure() function() mainDecl() { symbolTableGenerator.setCurrentActiveToInactive(); } statement() <EOF>
     { mainSymbolTable.byteCode.add(RET); }
+}
+
+void mainDecl() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+{}
+{
+    <STATIC> <VOID> <MAIN> "(" ")"
 }
 
 void function() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:

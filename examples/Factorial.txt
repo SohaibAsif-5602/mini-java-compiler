@@ -14,4 +14,6 @@ func factorial(int n) {
 	return (result);
 }
 
-print(factorial(n));
+static void main() {
+	print(factorial(n));
+}
