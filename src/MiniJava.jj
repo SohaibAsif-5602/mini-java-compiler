@@ -105,20 +105,20 @@ TOKEN : {
     | <IDENT : ["a" - "z"] (["a" - "z", "A" - "Z", "0" - "9"])*>
 }
 
-void programm() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+void programm() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 {}
 {
     constDecl() varDecl() procedure() function() mainDecl() { symbolTableGenerator.setCurrentActiveToInactive(); } statement() <EOF>
     { mainSymbolTable.byteCode.add(RET); }
 }
 
-void mainDecl() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void mainDecl() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException,MethodCallException:
 {}
 {
     <STATIC> <VOID> <MAIN> "(" ")"
 }
 
-void function() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+void function() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { Token t1; }
 {
     ( <FUNC> t1=<IDENT>
@@ -130,12 +130,13 @@ void function() throws SymbolAlreadyDefinedException, UnknownSymbolException, LV
         symbolTableGenerator.addSymbolTable(t1.image);
         symbolTableGenerator.setCurrentActiveToInactive();
         symbolTableGenerator.setSymbolTableActive(t1.image);
+        symbolTableGenerator.getActiveSymbolTable().isProcedure = false;
     }
     "(" routinenParameter(t1) { symbolTableGenerator.getSymbolTable(t1.image).addParameters(); } ")"
     "{" routinenBlock() <RETURN> expression() ";" "}" { symbolTableGenerator.getSymbolTable(t1.image).byteCode.add(IRETURN);  })*
 }
 
-void procedure() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+void procedure() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { Token t1; }
 {
     (<VOID> t1=<IDENT>
@@ -147,6 +148,7 @@ void procedure() throws SymbolAlreadyDefinedException, UnknownSymbolException, L
         symbolTableGenerator.addSymbolTable(t1.image);
         symbolTableGenerator.setCurrentActiveToInactive();
         symbolTableGenerator.setSymbolTableActive(t1.image);
+        symbolTableGenerator.getActiveSymbolTable().isProcedure = true;
     }
     "(" routinenParameter(t1) { symbolTableGenerator.getSymbolTable(t1.image).addParameters(); } ")"
     "{" routinenBlock() "}" { symbolTableGenerator.getSymbolTable(t1.image).byteCode.add(RET); })*
@@ -174,7 +176,7 @@ void routinenParameterList(Token t1) throws SymbolAlreadyDefinedException, Unkno
     )*
 }
 
-void routinenBlock() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, UnknownFunctionException:
+void routinenBlock() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, UnknownFunctionException, MethodCallException:
 {}
 {
     ( constDecl() varDecl() statement() )?
@@ -212,7 +214,7 @@ void varDecl() throws SymbolAlreadyDefinedException:
     )?
 }
 
-void statement() throws UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException:
+void statement() throws UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { Token t1; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
 {
     t1=<IDENT> ("="
@@ -333,19 +335,19 @@ void varList() throws SymbolAlreadyDefinedException:
     varList())?
 }
 
-void expression() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void expression() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 {}
 {
     term() summe()
 }
 
-void term() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void term() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 {}
 {
     faktor() produkt()
 }
 
-void summe() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void summe() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
 {
     (<ADD> term()
@@ -361,7 +363,7 @@ void summe() throws UnknownSymbolException, RValueException, WrongParametersExce
     summe())?
 }
 
-void faktor() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void faktor() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { Token t1; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
 {
     t1=<NUMBER>
@@ -424,7 +426,7 @@ void faktor() throws UnknownSymbolException, RValueException, WrongParametersExc
     "(" expression() ")"
 }
 
-void produkt() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void produkt() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
 {
     (<MUL> faktor()
@@ -441,7 +443,7 @@ void produkt() throws UnknownSymbolException, RValueException, WrongParametersEx
     )?
 }
 
-void condition() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void condition() throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { Token t1; SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
 {
     expression() t1=<COMPOP> expression()
@@ -450,13 +452,13 @@ void condition() throws UnknownSymbolException, RValueException, WrongParameters
     }
 }
 
-void stmtList() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void stmtList() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 {}
 {
     (statement() stmtList())?
 }
 
-void optElse() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void optElse() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { SymbolTable activeSymbolTable = symbolTableGenerator.getActiveSymbolTable() != null ? symbolTableGenerator.getActiveSymbolTable() : mainSymbolTable; }
 {
     (<ELSE>
@@ -471,9 +473,14 @@ void optElse() throws LValueException, UnknownSymbolException, RValueException, 
     )?
 }
 
-void functionCall(Token t1) throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void functionCall(Token t1) throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { SymbolTable activeSymbolTable = symbolTableGenerator.getSymbolTable(t1.image); }
 {
+    {
+         if (activeSymbolTable.isProcedure) {
+             throw new MethodCallException("'" + t1.image + "' is not a function");
+         }
+    }
     "(" (expression() { activeSymbolTable.callArgCount++; } ("," expression() { activeSymbolTable.callArgCount++; } )* )? ")"
     {
         activeSymbolTable.callArgCount += activeSymbolTable.callArgCounts.get(0);
@@ -486,9 +493,15 @@ void functionCall(Token t1) throws UnknownSymbolException, RValueException, Wron
     }
 }
 
-void procCall(Token t1) throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException:
+void procCall(Token t1) throws UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { SymbolTable activeSymbolTable = symbolTableGenerator.getSymbolTable(t1.image); }
 {
+    {
+        if (!activeSymbolTable.isProcedure) {
+            throw new MethodCallException("'" + t1.image + "' is not a procedure");
+        }
+    }
+
     "(" (expression() { activeSymbolTable.callArgCount++; } ("," expression() { activeSymbolTable.callArgCount++; } )* )? ")"
     {
         activeSymbolTable.callArgCount += activeSymbolTable.callArgCounts.get(0);

@@ -28,6 +28,8 @@ public class SymbolTable {
 
     public boolean isMain = false;
 
+    public boolean isProcedure = false;
+
     public ArrayList<String> byteCode = new ArrayList<>();
 
     public ArrayList<Integer> callArgCounts = new ArrayList<>(); // Needed for nested, recursive calls
