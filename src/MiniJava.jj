@@ -235,14 +235,6 @@ void statement() throws UnknownSymbolException, LValueException, RValueException
         }
     }
     | // Either expression or procCall
-    {
-        try {
-            symbolTableGenerator.getSymbolTable(t1.image).callArgCounts.add(symbolTableGenerator.getSymbolTable(t1.image).callArgCount);
-            symbolTableGenerator.getSymbolTable(t1.image).callArgCount = 0;
-        } catch (NullPointerException e) {
-            throw new UnknownFunctionException("Cannot find procedure declaration for '" + t1.image + "'.");
-        }
-    }
     procCall(t1)
     {
         activeSymbolTable.byteCode.add(INVOKESTATIC + "(" + t1.image + ")");
@@ -494,15 +486,22 @@ void procCall(Token t1) throws UnknownSymbolException, RValueException, WrongPar
 { SymbolTable activeSymbolTable = symbolTableGenerator.getSymbolTable(t1.image); }
 {
     {
-        if (!activeSymbolTable.isProcedure) {
-            throw new MethodCallException("'" + t1.image + "' is not a procedure");
+        try {
+            symbolTableGenerator.getSymbolTable(t1.image).callArgCounts.add(0);
+        } catch (NullPointerException e) {
+            throw new UnknownFunctionException("Cannot find procedure declaration for '" + t1.image + "'.");
         }
+
+        if (activeSymbolTable.isProcedure) {
+            throw new MethodCallException("'" + t1.image + "' is not a function");
+        }
+
     }
 
-    "(" (expression() { activeSymbolTable.callArgCount++; } ("," expression() { activeSymbolTable.callArgCount++; } )* )? ")"
+    "(" (expression() { activeSymbolTable.callArgCounts.set(activeSymbolTable.callArgCounts.size() - 1, activeSymbolTable.callArgCounts.get(activeSymbolTable.callArgCounts.size() - 1) + 1); } ("," expression() { activeSymbolTable.callArgCounts.set(activeSymbolTable.callArgCounts.size() - 1, activeSymbolTable.callArgCounts.get(activeSymbolTable.callArgCounts.size() - 1) + 1);} )* )? ")"
     {
-        activeSymbolTable.callArgCount += activeSymbolTable.callArgCounts.get(0);
-        activeSymbolTable.callArgCounts.remove(0);
+        activeSymbolTable.callArgCount = activeSymbolTable.callArgCounts.get(activeSymbolTable.callArgCounts.size() - 1);
+        activeSymbolTable.callArgCounts.remove(activeSymbolTable.callArgCounts.size() - 1);
 
         if (activeSymbolTable.callArgCount != activeSymbolTable.getArgCount()) {
             throw new WrongParametersException("Wrong Parameter count. Expected: " + activeSymbolTable.getArgCount() + ", Actucal: " + activeSymbolTable.callArgCount);
