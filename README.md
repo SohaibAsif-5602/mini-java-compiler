@@ -41,6 +41,7 @@ $ java MiniJavaClassFile
 **Example 1:**
 ```java
 final int n = 10;
+
 func fib(int n) {
         int result = 0;
         if n <= 1 {
@@ -100,38 +101,79 @@ static void main() {
 
 **Example 3:**
 ```java
-final int a = 3, b = 6;
-int c = 2, d = 6, i = 0;
-void myPrint(int i) {
-        print(i);
+final int x = 14400;
+
+// Note: The result is rounded down to the nearest integer, and this method works accurately only for numbers
+// with integer square roots, because the MiniJavaCompiler only works with integers
+
+func sqrt(int x) {
+	int start = 1, end, result, mid;
+
+	{
+		if x == 0 result = 0;
+		else if x == 1 result = 1;
+
+		end = x;
+		
+		while start <= end {
+			mid = (start + end) / 2;
+
+			if mid * mid == x {
+				result = mid;
+			}
+
+			if mid * mid < x {
+				start = mid + 1;
+				result = mid;
+			}
+			else {
+				end = mid - 1;
+			}
+		}
+		
+	}
+
+	return (result);
 }
 
-func f1(int a, int b) {
-        int c = 2;
-        if a < b {
-                c = a + 1;
-                d = 5 + 5;
-                while c < 15 {
-                        c = c + 1;
-                }
-        }
-        else {
-                d = 33;
-        }
-        return (c + d);
+static void main() {
+	print(sqrt(x));
+}
+```
+
+**Example 4:**
+```java
+final int a = 3, b = 2;
+int i;
+
+void myPrint(int n) {
+	print(n);
+}
+
+func ack(int a, int b) {
+        int ret = 0;
+        if b == 0
+	{
+		ret = 1;
+        } 
+	else
+		if a == 0 
+		{
+            		if b == 1 ret = 2;
+                	else ret = b + 2;
+        	} 
+		else 
+		{
+        		ret = ack(a - 1, ack(a,b-1));
+        	}
+        return ret;
 }
 
 static void main() {
 	while i < 10 {
+		myPrint(ack(a,b));
 		i = i + 1;
-		if i == 5 {
-			i = i + 10;
-		}
-		else {
-			print(i);
-		}
 	}
-	myPrint(f1(1, 5));
 }
 ```
 
