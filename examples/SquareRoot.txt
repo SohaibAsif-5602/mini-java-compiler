@@ -1,0 +1,38 @@
+final int x = 14400;
+
+// Note: The result is rounded down to the nearest integer, and this method works accurately only for numbers
+// with integer square roots, because the MiniJavaCompiler only works with integers
+
+func sqrt(int x) {
+	int start = 1, end, result, mid;
+
+	{
+		if x == 0 result = 0;
+		else if x == 1 result = 1;
+
+		end = x;
+		
+		while start <= end {
+			mid = (start + end) / 2;
+
+			if mid * mid == x {
+				result = mid;
+			}
+
+			if mid * mid < x {
+				start = mid + 1;
+				result = mid;
+			}
+			else {
+				end = mid - 1;
+			}
+		}
+		
+	}
+
+	return (result);
+}
+
+static void main() {
+	print(sqrt(x));
+}
