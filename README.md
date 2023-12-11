@@ -103,8 +103,8 @@ static void main() {
 ```java
 final int x = 14400;
 
-// Note: The result is rounded down to the nearest integer, and this method works accurately only for numbers
-// with integer square roots, because the MiniJavaCompiler only works with integers
+// Note: The result is rounded down to the nearest integer, and this method works accurately only
+// for numbers with integer square roots, because the MiniJavaCompiler only works with integers
 
 func sqrt(int x) {
 	int start = 1, end, result, mid;
