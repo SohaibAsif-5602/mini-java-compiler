@@ -8,9 +8,9 @@
 
 MiniJavaClassFileV.txt
 
-!/src/Exceptions/
+!/src/Exceptions/*.java
 !/src/ByteCodeGenerator/*.java
-!/src/Symboltable/
+!/src/Symboltable/*.java
 
 !/src/JavaClassFileGenerator.java
 !/src/MethodObject.java
