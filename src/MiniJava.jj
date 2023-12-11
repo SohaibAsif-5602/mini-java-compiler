@@ -492,8 +492,8 @@ void procCall(Token t1) throws UnknownSymbolException, RValueException, WrongPar
             throw new UnknownFunctionException("Cannot find procedure declaration for '" + t1.image + "'.");
         }
 
-        if (activeSymbolTable.isProcedure) {
-            throw new MethodCallException("'" + t1.image + "' is not a function");
+        if (!activeSymbolTable.isProcedure) {
+            throw new MethodCallException("'" + t1.image + "' is not a procedure");
         }
 
     }
