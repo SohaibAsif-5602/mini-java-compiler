@@ -1,4 +1,10 @@
 final int a = 3, b = 2;
+int i;
+
+void myPrint(int n) {
+	print(n);
+}
+
 func ack(int a, int b) {
         int ret = 0;
         if b == 0
@@ -19,6 +25,9 @@ func ack(int a, int b) {
 }
 
 static void main() {
-	print(ack(a,b));
+	while i < 10 {
+		myPrint(ack(a,b));
+		i = i + 1;
+	}
 }
 
