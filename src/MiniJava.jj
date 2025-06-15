@@ -102,13 +102,20 @@ TOKEN : {
     | <STATIC : "static">
     | <FUNC : "func">
     | <RETURN : "return">
-    | <IDENT : ["a" - "z"] (["a" - "z", "A" - "Z", "0" - "9"])*>
+    | <CLASS : "class"> //Class DECL
+    | <IDENT : ["a" - "z", "A"-"Z"] (["a" - "z", "A" - "Z", "0" - "9"])*>
 }
-
+//New Main Entry Point
 void programm() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 {}
 {
-    constDecl() varDecl() procedure() function() mainDecl() { symbolTableGenerator.setCurrentActiveToInactive(); } statement() <EOF>
+    classDecl() <EOF>
+}
+//Old Entry Point
+void programBlock() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
+{}
+{
+    constDecl() varDecl() procedure() function() mainDecl() { symbolTableGenerator.setCurrentActiveToInactive(); } statement()
     { mainSymbolTable.byteCode.add(RET); }
 }
 
@@ -117,6 +124,15 @@ void mainDecl() throws LValueException, UnknownSymbolException, RValueException,
 {
     <STATIC> <VOID> <MAIN> "(" ")"
 }
+//Class Declaration
+void classDecl() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
+{ Token t1; }
+{
+    <CLASS> t1=<IDENT> "{" 
+        programBlock()
+    "}"
+}
+
 
 void function() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
 { Token t1; }
