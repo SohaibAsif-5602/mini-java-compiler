@@ -5,6 +5,7 @@ import Exceptions.*;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SymbolTable {
@@ -27,6 +28,9 @@ public class SymbolTable {
     public int callArgCount = 0; // Actual parameter count when calling the function
 
     public boolean isMain = false;
+
+    private List<String> labelNumbersFor = new ArrayList<>();
+private int currentLabelNumberFor = 0;
 
     public boolean isProcedure = false;
 
@@ -61,6 +65,30 @@ public class SymbolTable {
 
         m_symbolTable.put(id, new AbstractMap.SimpleEntry<>("VAR", m_addressCounter++));
     }
+
+    public void addLabelFor(String label) {
+    labelNumbersFor.add(label);
+}
+
+public String getLabelFor(int index) {
+    return labelNumbersFor.get(index);
+}
+
+public void removeLabelFor(int index) {
+    labelNumbersFor.remove(index);
+}
+
+public int getCurrentLabelNumberFor() {
+    return currentLabelNumberFor;
+}
+
+public void incrementCurrentLabelNumberFor() {
+    currentLabelNumberFor++;
+}
+
+public List<String> getLabelNumbersFor() {
+    return labelNumbersFor;
+}
 
     public int getSymbol(String id) throws UnknownSymbolException {
         if (!m_symbolTable.containsKey(id))

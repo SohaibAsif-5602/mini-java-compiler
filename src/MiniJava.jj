@@ -66,6 +66,10 @@ public class MiniJava {
     public final static String HEXFORMAT4 = "%1$04X";
     public final static String HEXFORMAT2 = "%1$02X";
 
+    public final static String FORSTART = "FORSTART";
+    public final static String FOREND = "FOREND";
+    public final static String FORINCR = "FORINCR";
+
     public final static String IFSTART = "IFSTART";
     public final static String IFEND = "IFEND";
     public final static String ELSESTART = "ELSESTART";
@@ -97,6 +101,7 @@ TOKEN : {
     | <IF : "if">
     | <ELSE : "else">
     | <WHILE : "while">
+    | <FOR : "for">  // Add this line for the for loop
     | <MAIN : "main">
     | <VOID : "void">
     | <STATIC : "static">
@@ -119,10 +124,13 @@ void programBlock() throws SymbolAlreadyDefinedException, UnknownSymbolException
     { mainSymbolTable.byteCode.add(RET); }
 }
 
-void mainDecl() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException,MethodCallException:
+void mainDecl() throws LValueException, UnknownSymbolException, RValueException, WrongParametersException, UnknownFunctionException,MethodCallException, SymbolAlreadyDefinedException:
 {}
 {
-    <STATIC> <VOID> <MAIN> "(" ")"
+    <STATIC> <VOID> <MAIN> "(" ")" "{" constDecl() varDecl() statement() "}"
+{
+    mainSymbolTable.byteCode.add(RET);
+}
 }
 //Class Declaration
 void classDecl() throws SymbolAlreadyDefinedException, UnknownSymbolException, LValueException, RValueException, WrongParametersException, UnknownFunctionException, MethodCallException:
@@ -279,6 +287,38 @@ void statement() throws UnknownSymbolException, LValueException, RValueException
         activeSymbolTable.byteCode = jumpSizeCalculator.calculateJumpBytesForIF(activeSymbolTable.byteCode, activeSymbolTable.getLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1));
         activeSymbolTable.removeLabelIf(activeSymbolTable.getLabelNumbersIf().size() - 1);
     }
+    |
+    <FOR> "(" 
+    {
+        // Initialize counter variable
+        activeSymbolTable.byteCode.add(activeSymbolTable.getCurrentLabelNumberFor() + FORSTART);
+        activeSymbolTable.addLabelFor(String.valueOf(activeSymbolTable.getCurrentLabelNumberFor()));
+        activeSymbolTable.incrementCurrentLabelNumberFor();
+    }
+    (statement()) 
+    {
+        // Jump to condition check
+        activeSymbolTable.byteCode.add(activeSymbolTable.getLabelFor(activeSymbolTable.getLabelNumbersFor().size() - 1) + FORINCR);
+    }
+ condition() ";" 
+    {
+        // Jump to body if condition is true
+        activeSymbolTable.byteCode.add(activeSymbolTable.getLabelFor(activeSymbolTable.getLabelNumbersFor().size() - 1) + FOREND);
+    }
+    (statement() | expression()) 
+    ")" 
+    statement()
+    {
+        // Increment and loop back
+        activeSymbolTable.byteCode.add(GOTO);
+        activeSymbolTable.byteCode.add(activeSymbolTable.getLabelFor(activeSymbolTable.getLabelNumbersFor().size() - 1) + FORSTART);
+        activeSymbolTable.byteCode = jumpSizeCalculator.calculateJumpBytesForFOR(
+            activeSymbolTable.byteCode, 
+            activeSymbolTable.getLabelFor(activeSymbolTable.getLabelNumbersFor().size() - 1)
+        );
+        activeSymbolTable.removeLabelFor(activeSymbolTable.getLabelNumbersFor().size() - 1);
+    }
+
     |
     <WHILE> condition()
     {

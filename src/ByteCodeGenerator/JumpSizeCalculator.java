@@ -17,7 +17,9 @@ public class JumpSizeCalculator {
     public final static String WHILEEND = "WHILEEND";
     public final static String ELSESTART = "ELSESTART";
     public final static String ELSEEND = "ELSEEND";
-
+public final static String FORSTART = "FORSTART";
+public final static String FORINCR = "FORINCR";
+public final static String FOREND = "FOREND";
     public final static String HEX = "%1$04X";
 
     public String getCompOPByteCode(String compOp) {
@@ -32,6 +34,87 @@ public class JumpSizeCalculator {
             default -> "Error"; // Cannot happen
         };
     }
+
+    public ArrayList<String> calculateJumpBytesForFOR(ArrayList<String> byteCode, String currentLabel) {
+    ArrayList<String> newByteCode = new ArrayList<>(byteCode);
+
+    // Find all the key positions in the for loop
+    int indexOfStart = newByteCode.indexOf(currentLabel + FORSTART);
+    int indexOfIncr = newByteCode.indexOf(currentLabel + FORINCR);
+    int indexOfEnd = newByteCode.indexOf(currentLabel + FOREND);
+
+    // Calculate additional bytes for the initialization part (before condition check)
+    int initAdditionalBytes = 0;
+    for (int i = indexOfStart; i < indexOfIncr; i++) {
+        initAdditionalBytes += countBytesForInstruction(newByteCode.get(i));
+    }
+
+    // Calculate additional bytes for the condition check part
+    int condAdditionalBytes = 0;
+    for (int i = indexOfIncr; i < indexOfEnd; i++) {
+        condAdditionalBytes += countBytesForInstruction(newByteCode.get(i));
+    }
+
+    // Calculate additional bytes for the increment part
+    int incrAdditionalBytes = 0;
+    for (int i = indexOfEnd; i < newByteCode.size(); i++) {
+        if (newByteCode.get(i).equals("GOTO")) continue;
+        incrAdditionalBytes += countBytesForInstruction(newByteCode.get(i));
+    }
+
+    // Calculate jump for condition check (from initialization to condition)
+    ArrayList<String> firstPart = new ArrayList<>(newByteCode.subList(0, indexOfStart + 1));
+    ArrayList<String> middlePart = new ArrayList<>(newByteCode.subList(indexOfStart + 1, newByteCode.size()));
+    firstPart.add(String.format(HEX, indexOfIncr - indexOfStart + initAdditionalBytes));
+    newByteCode = new ArrayList<>(firstPart);
+    newByteCode.addAll(middlePart);
+
+    // Calculate jump for loop body (from condition to body)
+    firstPart = new ArrayList<>(newByteCode.subList(0, indexOfIncr + 1));
+    middlePart = new ArrayList<>(newByteCode.subList(indexOfIncr + 1, newByteCode.size()));
+    firstPart.add(String.format(HEX, indexOfEnd - indexOfIncr + condAdditionalBytes));
+    newByteCode = new ArrayList<>(firstPart);
+    newByteCode.addAll(middlePart);
+
+    // Calculate jump for increment (from end of body back to condition)
+    // This is the GOTO at the end of the loop
+    String gotoHex = String.format(HEX, 
+        (indexOfStart - indexOfEnd - 1) + // basic instruction count
+        incrAdditionalBytes +             // additional bytes in increment
+        3                                 // bytes for the GOTO instruction itself
+    );
+    
+    // Find the GOTO instruction and add the jump offset
+    for (int i = newByteCode.size() - 1; i >= 0; i--) {
+        if (newByteCode.get(i).equals("GOTO")) {
+            newByteCode.add(i + 1, gotoHex);
+            break;
+        }
+    }
+
+    // Remove all the label markers
+    newByteCode.remove(currentLabel + FORSTART);
+    newByteCode.remove(currentLabel + FORINCR);
+    newByteCode.remove(currentLabel + FOREND);
+
+    return newByteCode;
+}
+
+private int countBytesForInstruction(String instruction) {
+    if (instruction.length() == 4 && !checkIfLabel(instruction)) {
+        return 1;
+    }
+    if (instruction.contains("(") && instruction.contains(")")) {
+        return 2; // INVOKESTATIC
+    }
+    if (instruction.contains("[") && instruction.contains("]")) {
+        return 2; // GETSTATIC/PUTSTATIC
+    }
+    if (instruction.equals("GOTO")) {
+        return 1; // GOTO opcode (the operand is handled separately)
+    }
+    return 0;
+}
 
     public ArrayList<String> calculateJumpBytesForIF(ArrayList<String> byteCode, String currentLabel) {
         ArrayList<String> newByteCode = new ArrayList<>(byteCode);
